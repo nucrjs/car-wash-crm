@@ -1,3 +1,23 @@
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 12px;
+  padding: 16px;
+}
+
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 32px;
+}
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
