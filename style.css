@@ -76,3 +76,25 @@ tr:hover {
   border-radius: 999px;
   background: #e8eef7;
 }
+
+.filters {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  margin: 0 16px 16px 16px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.filters input,
+.filters select {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  min-width: 180px;
+}
+
+.filters input {
+  min-width: 300px;
+}
