@@ -6,9 +6,33 @@
 </head>
 <body>
   <header>
-    <h1>Car Wash CRM</h1>
-    <input id="searchBox" placeholder="Search companies...">
-  </header>
+  <h1>Car Wash CRM</h1>
+</header>
+
+<div class="filters">
+  <input id="searchBox" placeholder="Search companies">
+
+  <select id="priorityFilter">
+    <option value="">All Priorities</option>
+    <option value="5">Priority 5</option>
+    <option value="4">Priority 4</option>
+    <option value="3">Priority 3</option>
+    <option value="2">Priority 2</option>
+    <option value="1">Priority 1</option>
+  </select>
+
+  <select id="statusFilter">
+    <option value="">All Statuses</option>
+    <option>New</option>
+    <option>Researching</option>
+    <option>Ready for Outreach</option>
+    <option>Contacted</option>
+    <option>Follow-Up</option>
+    <option>Meeting Set</option>
+    <option>Not a Fit</option>
+    <option>Do Not Contact</option>
+  </select>
+</div>
 
  <div class="dashboard">
   <div class="card">
