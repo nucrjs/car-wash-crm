@@ -2,7 +2,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbzqNiR_lC14CTdodOJb_0Jv
 let companies = [];
 
 async function loadCompanies() {
-  const res = await fetch(API_URL);
+  const res = await fetch(`${API_URL}?action=companies`);
   const json = await res.json();
 
   if (!json.success) {
