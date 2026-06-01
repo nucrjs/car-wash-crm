@@ -2,83 +2,264 @@
 <html>
 <head>
   <title>Car Wash CRM</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body{margin:0;font-family:Arial,sans-serif;background:#f5f7fa;color:#222}
+    header{padding:16px 24px;background:#152238;color:white}
+    .filters,.dashboard{display:flex;gap:12px;padding:16px}
+    .filters input,.filters select{padding:10px;border:1px solid #ddd;border-radius:6px}
+    .card{background:white;border-radius:10px;padding:16px;min-width:140px;box-shadow:0 2px 8px #0001;text-align:center}
+    .card h3{margin:0;font-size:28px}
+    main{display:grid;grid-template-columns:2fr 1fr;gap:16px;padding:16px}
+    section,aside{background:white;border-radius:10px;padding:16px;box-shadow:0 2px 8px #0001}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:9px;border-bottom:1px solid #ddd;text-align:left}
+    tr:hover{background:#eef4ff;cursor:pointer}
+    label{display:block;margin-top:10px;font-weight:bold}
+    input,select,textarea{width:100%;padding:8px;margin-top:4px;box-sizing:border-box}
+    textarea{min-height:100px}
+    button{margin-top:12px;padding:10px 14px;background:#152238;color:white;border:none;border-radius:6px;cursor:pointer}
+    .tabs{display:flex;gap:8px;margin:12px 0}
+    .tabs button{background:#e8eef7;color:#152238;margin-top:0}
+    .item{border-bottom:1px solid #ddd;padding:8px 0}
+  </style>
 </head>
+
 <body>
-  <header>
-  <h1>Car Wash CRM</h1>
-</header>
+<header><h1>Car Wash CRM</h1></header>
 
 <div class="filters">
   <input id="searchBox" placeholder="Search companies">
-
   <select id="priorityFilter">
     <option value="">All Priorities</option>
-    <option value="5">Priority 5</option>
-    <option value="4">Priority 4</option>
-    <option value="3">Priority 3</option>
-    <option value="2">Priority 2</option>
+    <option value="5">Priority 5</option><option value="4">Priority 4</option>
+    <option value="3">Priority 3</option><option value="2">Priority 2</option>
     <option value="1">Priority 1</option>
   </select>
-
   <select id="statusFilter">
     <option value="">All Statuses</option>
-    <option>New</option>
-    <option>Researching</option>
-    <option>Ready for Outreach</option>
-    <option>Contacted</option>
-    <option>Follow-Up</option>
-    <option>Meeting Set</option>
-    <option>Not a Fit</option>
-    <option>Do Not Contact</option>
+    <option>New</option><option>Researching</option><option>Ready for Outreach</option>
+    <option>Contacted</option><option>Follow-Up</option><option>Meeting Set</option>
+    <option>Not a Fit</option><option>Do Not Contact</option>
   </select>
 </div>
 
- <div class="dashboard">
-  <div class="card">
-    <h3 id="companyCount">0</h3>
-    <p>Companies</p>
-  </div>
+<div class="dashboard">
+  <div class="card"><h3 id="companyCount">0</h3><p>Companies</p></div>
+  <div class="card"><h3 id="locationCount">0</h3><p>Locations</p></div>
+  <div class="card"><h3 id="peCount">0</h3><p>PE Backed</p></div>
+  <div class="card"><h3 id="followupCount">0</h3><p>Follow Ups</p></div>
+</div>
 
-  <div class="card">
-    <h3 id="locationCount">0</h3>
-    <p>Locations</p>
-  </div>
+<main>
+  <section>
+    <table>
+      <thead>
+        <tr>
+          <th>Company</th><th>Locations</th><th>Priority</th><th>PE</th><th>Status</th><th>Follow Up</th>
+        </tr>
+      </thead>
+      <tbody id="companyTable"></tbody>
+    </table>
+  </section>
 
-  <div class="card">
-    <h3 id="peCount">0</h3>
-    <p>PE Backed</p>
-  </div>
+  <aside id="detailPanel">
+    <h2>Select a company</h2>
+    <p>Company details will appear here.</p>
+  </aside>
+</main>
 
-  <div class="card">
-    <h3 id="followupCount">0</h3>
-    <p>Follow Ups Due</p>
-  </div>
-</div> 
-  
-  <main>
-    <section class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Company</th>
-            <th>Locations</th>
-            <th>Priority</th>
-            <th>PE Backed</th>
-            <th>Status</th>
-            <th>Next Follow Up</th>
-          </tr>
-        </thead>
-        <tbody id="companyTable"></tbody>
-      </table>
-    </section>
+<script>
+const API_BASE = "https://script.google.com/macros/s/AKfycbzqNiR_lC14CTdodOJb_0JvYUl-1e9PN9Ukj8W8f5Cc0Xo1Tph2LYfbcd2QyDh5cp92mw/exec";
 
-    <aside id="detailPanel">
-      <h2>Select a company</h2>
-      <p>Company details will appear here.</p>
-    </aside>
-  </main>
+let companies = [];
+let locations = [];
+let contacts = [];
+let selectedCompany = null;
 
-  <script src="app.js?v=1000"></script>
+async function apiGet(action){
+  const res = await fetch(`${API_BASE}?action=${action}`);
+  return await res.json();
+}
+
+async function loadAll(){
+  const c = await apiGet("companies");
+  const l = await apiGet("locations");
+
+  companies = c.data || [];
+  locations = l.data || [];
+
+  try {
+    const ct = await apiGet("contacts");
+    contacts = ct.data || [];
+  } catch(e) {
+    contacts = [];
+  }
+
+  renderCompanies(companies);
+  updateDashboard();
+}
+
+function renderCompanies(data){
+  const tbody = document.getElementById("companyTable");
+  tbody.innerHTML = "";
+
+  data.forEach(c=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${c["Company Name"]||""}</td>
+      <td>${c["Total Locations"]||""}</td>
+      <td>${c["Priority Score"]||""}</td>
+      <td>${c["PE Backed"]||""}</td>
+      <td>${c["Lead Status"]||""}</td>
+      <td>${c["Next Follow Up"]||""}</td>
+    `;
+    tr.onclick=()=>showCompany(c,"overview");
+    tbody.appendChild(tr);
+  });
+}
+
+function showCompany(company,tab){
+  selectedCompany = company;
+  const panel=document.getElementById("detailPanel");
+
+  panel.innerHTML=`
+    <h2>${company["Company Name"]||""}</h2>
+    <p><a href="${company["Website"]||"#"}" target="_blank">${company["Website"]||""}</a></p>
+
+    <div class="tabs">
+      <button onclick="showCompany(selectedCompany,'overview')">Overview</button>
+      <button onclick="showCompany(selectedCompany,'contacts')">Contacts</button>
+      <button onclick="showCompany(selectedCompany,'locations')">Locations</button>
+    </div>
+
+    <div id="tabContent"></div>
+  `;
+
+  if(tab==="contacts") renderContacts(company);
+  else if(tab==="locations") renderLocations(company);
+  else renderOverview(company);
+}
+
+function renderOverview(c){
+  document.getElementById("tabContent").innerHTML=`
+    <label>Priority Score</label>
+    <select id="editPriority">
+      <option value=""></option>
+      ${[5,4,3,2,1].map(v=>`<option value="${v}" ${c["Priority Score"]==v?"selected":""}>${v}</option>`).join("")}
+    </select>
+
+    <label>PE Backed</label>
+    <select id="editPE">
+      <option value=""></option>
+      <option ${c["PE Backed"]==="Yes"?"selected":""}>Yes</option>
+      <option ${c["PE Backed"]==="No"?"selected":""}>No</option>
+      <option ${c["PE Backed"]==="Unknown"?"selected":""}>Unknown</option>
+    </select>
+
+    <label>Lead Status</label>
+    <select id="editStatus">
+      ${["New","Researching","Ready for Outreach","Contacted","Follow-Up","Meeting Set","Not a Fit","Do Not Contact"]
+      .map(s=>`<option ${c["Lead Status"]===s?"selected":""}>${s}</option>`).join("")}
+    </select>
+
+    <label>Next Follow Up</label>
+    <input id="editFollowUp" type="date" value="${formatDate(c["Next Follow Up"])}">
+
+    <label>Research Notes</label>
+    <textarea id="editNotes">${c["Research Notes"]||""}</textarea>
+
+    <button onclick="saveCompany()">Save Changes</button>
+    <p id="saveMessage"></p>
+  `;
+}
+
+function renderContacts(c){
+  const rows = contacts.filter(x => x["CompanyID"] === c["CompanyID"]);
+  document.getElementById("tabContent").innerHTML = `
+    <h3>Contacts (${rows.length})</h3>
+    ${rows.map(x=>`
+      <div class="item">
+        <strong>${x["Full Name"]||""}</strong><br>
+        ${x["Title"]||""}<br>
+        ${x["Email"]||""}<br>
+        ${x["Phone"]||""}
+      </div>
+    `).join("") || "<p>No contacts found.</p>"}
+  `;
+}
+
+function renderLocations(c){
+  const rows = locations.filter(x => x["CompanyID"] === c["CompanyID"]);
+  document.getElementById("tabContent").innerHTML = `
+    <h3>Locations (${rows.length})</h3>
+    ${rows.slice(0,75).map(x=>`
+      <div class="item">
+        <strong>${x["Location Name"]||""}</strong><br>
+        ${x["Address"]||""}, ${x["City"]||""}, ${x["State"]||""} ${x["Zip"]||""}<br>
+        Status: ${x["Location Status"]||""}
+      </div>
+    `).join("") || "<p>No locations found.</p>"}
+  `;
+}
+
+async function saveCompany(){
+  const payload={
+    action:"updateCompany",
+    CompanyID:selectedCompany["CompanyID"],
+    "Priority Score":document.getElementById("editPriority").value,
+    "PE Backed":document.getElementById("editPE").value,
+    "Lead Status":document.getElementById("editStatus").value,
+    "Next Follow Up":document.getElementById("editFollowUp").value,
+    "Research Notes":document.getElementById("editNotes").value
+  };
+
+  const res=await fetch(API_BASE,{
+    method:"POST",
+    body:JSON.stringify(payload)
+  });
+
+  const json=await res.json();
+
+  if(json.success){
+    Object.assign(selectedCompany,payload);
+    document.getElementById("saveMessage").innerText="Saved successfully.";
+    renderCompanies(companies);
+    updateDashboard();
+  } else {
+    document.getElementById("saveMessage").innerText="Save failed: "+json.message;
+  }
+}
+
+function applyFilters(){
+  const search=document.getElementById("searchBox").value.toLowerCase();
+  const priority=document.getElementById("priorityFilter").value;
+  const status=document.getElementById("statusFilter").value;
+
+  renderCompanies(companies.filter(c=>
+    String(c["Company Name"]||"").toLowerCase().includes(search) &&
+    (!priority || String(c["Priority Score"]||"")===priority) &&
+    (!status || String(c["Lead Status"]||"")===status)
+  ));
+}
+
+function updateDashboard(){
+  document.getElementById("companyCount").innerText=companies.length;
+  document.getElementById("locationCount").innerText=locations.length;
+  document.getElementById("peCount").innerText=companies.filter(c=>String(c["PE Backed"]||"").toLowerCase()==="yes").length;
+  document.getElementById("followupCount").innerText=companies.filter(c=>c["Next Follow Up"]).length;
+}
+
+function formatDate(v){
+  if(!v)return "";
+  const d=new Date(v);
+  return isNaN(d) ? "" : d.toISOString().split("T")[0];
+}
+
+document.getElementById("searchBox").addEventListener("input",applyFilters);
+document.getElementById("priorityFilter").addEventListener("change",applyFilters);
+document.getElementById("statusFilter").addEventListener("change",applyFilters);
+
+loadAll();
+</script>
 </body>
 </html>
