@@ -3,7 +3,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbzqNiR_lC14CTdodOJb_0Jv
 let companies = [];
 
 async function loadCompanies() {
-  const res = await fetch(`${API_URL}?action=companies`);
+  const res = await fetch(API_URL);
   const json = await res.json();
 
   if (!json.success) {
@@ -13,6 +13,7 @@ async function loadCompanies() {
 
   companies = json.data;
   renderCompanies(companies);
+  updateDashboard();
 }
 
 function renderCompanies(data) {
@@ -54,14 +55,56 @@ function showCompany(company) {
   `;
 }
 
-document.getElementById("searchBox").addEventListener("input", e => {
-  const term = e.target.value.toLowerCase();
+function updateDashboard() {
+  document.getElementById("companyCount").innerText = companies.length;
 
-  const filtered = companies.filter(c =>
-    String(c["Company Name"] || "").toLowerCase().includes(term)
+  const locations = companies.reduce(
+    (total, company) => total + Number(company["Total Locations"] || 0),
+    0
   );
 
+  document.getElementById("locationCount").innerText = locations;
+
+  const pe = companies.filter(company =>
+    String(company["PE Backed"] || "").toLowerCase() === "yes"
+  ).length;
+
+  document.getElementById("peCount").innerText = pe;
+
+  const today = new Date();
+
+  const due = companies.filter(company => {
+    if (!company["Next Follow Up"]) return false;
+    return new Date(company["Next Follow Up"]) <= today;
+  }).length;
+
+  document.getElementById("followupCount").innerText = due;
+}
+
+function applyFilters() {
+  const search = document.getElementById("searchBox").value.toLowerCase();
+  const priority = document.getElementById("priorityFilter").value;
+  const status = document.getElementById("statusFilter").value;
+
+  const filtered = companies.filter(company => {
+    const matchSearch = String(company["Company Name"] || "")
+      .toLowerCase()
+      .includes(search);
+
+    const matchPriority =
+      !priority || String(company["Priority Score"] || "") === priority;
+
+    const matchStatus =
+      !status || String(company["Lead Status"] || "") === status;
+
+    return matchSearch && matchPriority && matchStatus;
+  });
+
   renderCompanies(filtered);
-});
+}
+
+document.getElementById("searchBox").addEventListener("input", applyFilters);
+document.getElementById("priorityFilter").addEventListener("change", applyFilters);
+document.getElementById("statusFilter").addEventListener("change", applyFilters);
 
 loadCompanies();
