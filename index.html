@@ -1,9 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Car Wash CRM</title>
+  <title>Car Wash CRM</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1>Car Wash CRM</h1>
+  <header>
+    <h1>Car Wash CRM</h1>
+    <input id="searchBox" placeholder="Search companies...">
+  </header>
+
+  <main>
+    <section class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Locations</th>
+            <th>Priority</th>
+            <th>PE Backed</th>
+            <th>Status</th>
+            <th>Next Follow Up</th>
+          </tr>
+        </thead>
+        <tbody id="companyTable"></tbody>
+      </table>
+    </section>
+
+    <aside id="detailPanel">
+      <h2>Select a company</h2>
+      <p>Company details will appear here.</p>
+    </aside>
+  </main>
+
+  <script src="app.js"></script>
 </body>
 </html>
