@@ -98,3 +98,37 @@ tr:hover {
 .filters input {
   min-width: 300px;
 }
+
+#detailPanel label {
+  display: block;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+#detailPanel input,
+#detailPanel select,
+#detailPanel textarea {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  box-sizing: border-box;
+}
+
+#detailPanel textarea {
+  min-height: 120px;
+}
+
+#detailPanel button {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: #152238;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#saveMessage {
+  margin-top: 10px;
+  font-weight: bold;
+}
