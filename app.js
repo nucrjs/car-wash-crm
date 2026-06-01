@@ -108,4 +108,27 @@ document.getElementById("searchBox").addEventListener("input", applyFilters);
 document.getElementById("priorityFilter").addEventListener("change", applyFilters);
 document.getElementById("statusFilter").addEventListener("change", applyFilters);
 
-loadCompanies();
+async function loadCompanies() {
+  try {
+    const res = await fetch(API_URL);
+    const text = await res.text();
+
+    console.log("API_URL:", API_URL);
+    console.log("Raw API response:", text);
+
+    const json = JSON.parse(text);
+
+    if (!json.success) {
+      alert("Failed to load companies: " + json.message);
+      return;
+    }
+
+    companies = json.data;
+    renderCompanies(companies);
+    updateDashboard();
+
+  } catch (error) {
+    console.error("Load error:", error);
+    alert("Companies failed to load. Check Console for Raw API response.");
+  }
+}
