@@ -7,7 +7,8 @@ async function loadCompanies() {
   const json = await res.json();
 
   if (!json.success) {
-    alert("Failed to load companies");
+    alert("Failed to load companies: " + json.message);
+console.log(json);
     return;
   }
 
